@@ -154,6 +154,9 @@ $(function () {
             console.log(budget);
         };
 
+        var updatePercentages = function() {
+
+        };
         // container is shared by expenses list and income list. event delegation process
         $(DOM.container).on("click", function (event) {
             var item = event.target.parentNode.parentNode.parentNode.parentNode.id;
