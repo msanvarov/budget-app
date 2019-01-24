@@ -19,6 +19,19 @@ $(function () {
             this.id = id;
             this.description = description;
             this.value = value;
+            this.percentage = -1;
+        };
+
+        Expenses.prototype.calcPercentage = function (total_income) {
+            if (total_income > 0) {
+                this.percentage = Math.round((this.value / total_income) * 100);
+            } else {
+                this.percentage = -1;
+            }
+        };
+
+        Expenses.prototype.getPercentage = function f() {
+            return this.percentage;
         };
         var Income = function (id, description, value) {
             this.id = id;
@@ -35,11 +48,12 @@ $(function () {
 
         };
 
+
         return {
             addItem: function (type, des, val) {
                 var newItem, ID, length;
                 length = data.allItems[type].length;
-                length > 1 ? ID = data.allItems[type][data.allItems[type].length - 1].id + 1 : ID = 0;
+                length >= 1 ? ID = data.allItems[type][data.allItems[type].length - 1].id + 1 : ID = 0;
                 if (type === "exp") {
                     newItem = new Expenses(ID, des, val);
                 } else if (type === "inc") {
@@ -62,7 +76,6 @@ $(function () {
                 calculateTotals('inc');
                 calculateTotals('exp');
                 data.budget = data.totals.inc - data.totals.exp;
-                console.log((data.totals.exp / data.totals.inc));
                 if (data.totals.inc > 0) {
                     data.percentage = Math.round((data.totals.exp / data.totals.inc) * 100);
                 } else {
@@ -75,6 +88,15 @@ $(function () {
                     total_expenses: data.totals.exp,
                     percentage: data.percentage
                 }
+            }, calculatePercentages: function () {
+                data.allItems.exp.forEach(function (curr) {
+                    curr.calcPercentage(data.totals.inc);
+                });
+            }, getPercentages: function () {
+                var allPerc = data.allItems.exp.map(function (curr) {
+                    return curr.getPercentage();
+                });
+                return allPerc;
             }, debug: function () {
                 console.log(data);
             }
@@ -94,7 +116,8 @@ $(function () {
             budgetExpenses: ".budget__expenses--value",
             budgetPercentage: ".budget__expenses--percentage",
             budget: ".budget__value",
-            container: ".container"
+            container: ".container",
+            expensesPercentage: ".item__percentage"
         };
 
         return {
@@ -138,6 +161,15 @@ $(function () {
                 } else {
                     $(DOMStrings.budgetPercentage).text("---");
                 }
+            }, updatePercentages: function (percentages) {
+                $(DOMStrings.expensesPercentage).each(function (index) {
+                    console.log(index + ": " + $( this ).text() );
+                    if (percentages[index] > 0) {
+                        $(this).text(percentages[index] + "%");
+                    } else {
+                        $(this).text("---");
+                    }
+                });
             }
         };
     })();
@@ -151,11 +183,13 @@ $(function () {
             budgetCtrl.calculateBudget();
             var budget = budgetCtrl.get_Budget();
             uiCtrl.displayBudget(budget);
-            console.log(budget);
+            // console.log(budget);
         };
 
-        var updatePercentages = function() {
-
+        var updatePercentages = function () {
+            budgetCtrl.calculatePercentages();
+            console.log(budgetCtrl.getPercentages());
+            uiCtrl.updatePercentages(budgetCtrl.getPercentages());
         };
         // container is shared by expenses list and income list. event delegation process
         $(DOM.container).on("click", function (event) {
@@ -167,7 +201,8 @@ $(function () {
                 type = type.slice(0, 3);
                 id = parseInt(split[1]);
                 budgetCtrl.deleteItem(type, id);
-                uiCtrl.deleteListItem("#"+item);
+                console.log(item);
+                uiCtrl.deleteListItem("#" + item);
                 changeBudget();
             }
         });
@@ -177,8 +212,9 @@ $(function () {
             if (input.description[0].value !== "" && !isNaN(input.value[0].valueAsNumber) && input.value[0].valueAsNumber > 0) {
                 var item = budgetCtrl.addItem(input.type, input.description[0].value, input.value[0].valueAsNumber);
                 uiCtrl.addListItem(item, input.type);
-                changeBudget();
                 uiCtrl.clearFields();
+                changeBudget();
+                updatePercentages();
 
             }
         });
