@@ -13,3 +13,4 @@ ledger or income and expenses and plan finances accordingly
 
 #### Dependencies
 * JQUERY
+* JQUERY Number Plugin

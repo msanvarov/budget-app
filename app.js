@@ -117,7 +117,8 @@ $(function () {
             budgetPercentage: ".budget__expenses--percentage",
             budget: ".budget__value",
             container: ".container",
-            expensesPercentage: ".item__percentage"
+            expensesPercentage: ".item__percentage",
+            dateLabel: ".budget__title--month"
         };
 
         return {
@@ -137,13 +138,13 @@ $(function () {
                 if (type === "inc") {
                     $(DOMStrings.incomeContainer).append(`<div class="item clearfix" id="income-` + data_obj.id + `">
                  <div class="item__description">` + data_obj.description + `</div><div class="right clearfix">
-                 <div class="item__value">+` + data_obj.value + `</div><div class="item__delete">
+                 <div class="item__value">+ ` + $.number(data_obj.value, 2) + `</div><div class="item__delete">
                  <button class="item__delete--btn"><i class="ion-ios-close-outline"></i>
                  </button></div></div></div>`);
                 } else {
                     $(DOMStrings.expensesContainer).append(`<div class="item clearfix" id="expense-` + data_obj.id + `">
                   <div class="item__description">` + data_obj.description + `</div> <div class="right clearfix">
-                  <div class="item__value">- ` + data_obj.value + `</div> <div class="item__percentage">TODO (21%)</div>
+                  <div class="item__value">- ` + $.number(data_obj.value, 2) + `</div> <div class="item__percentage">TODO (21%)</div>
                   <div class="item__delete"> <button class="item__delete--btn">
                   <i class="ion-ios-close-outline"></i></button> </div> </div> </div>`);
                 }
@@ -152,9 +153,9 @@ $(function () {
             }, clearFields: function () {
                 $(DOMStrings.inputDescription + ', ' + DOMStrings.inputValue).val('');
             }, displayBudget: function (data) {
-                $(DOMStrings.budget).text(data.budget);
-                $(DOMStrings.budgetIncome).text(data.total_income);
-                $(DOMStrings.budgetExpenses).text(data.total_expenses);
+                $(DOMStrings.budget).text($.number(data.budget, 2));
+                $(DOMStrings.budgetIncome).text($.number(data.total_income, 2));
+                $(DOMStrings.budgetExpenses).text($.number(data.total_expenses, 2));
                 if (data.percentage > 0) {
                     $(DOMStrings.budgetPercentage).text(data.percentage + "%");
 
@@ -163,18 +164,32 @@ $(function () {
                 }
             }, updatePercentages: function (percentages) {
                 $(DOMStrings.expensesPercentage).each(function (index) {
-                    console.log(index + ": " + $( this ).text() );
+                    console.log(index + ": " + $(this).text());
                     if (percentages[index] > 0) {
                         $(this).text(percentages[index] + "%");
                     } else {
                         $(this).text("---");
                     }
                 });
+            }, displayDate: function () {
+                const months = ["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                ];
+                var date = new Date();
+                $(DOMStrings.dateLabel).text(months[date.getMonth()] + ", " + date.getFullYear());
+
+            }, changedType: function () {
+                $(DOMStrings.inputType).change(function () {
+                    $(DOMStrings.inputType + ", " + DOMStrings.inputDescription + ", " + DOMStrings.inputValue).toggleClass("red-focus");
+                    $(DOMStrings.inputBtn).toggleClass("red");
+                });
             }
         };
     })();
 
-// Global Controller
+    uiController.displayDate();
+
+    // Global Controller
     var controller = (function (budgetCtrl, uiCtrl) {
 
         var DOM = uiCtrl.get_DOM();
@@ -191,6 +206,8 @@ $(function () {
             console.log(budgetCtrl.getPercentages());
             uiCtrl.updatePercentages(budgetCtrl.getPercentages());
         };
+
+        uiCtrl.changedType();
         // container is shared by expenses list and income list. event delegation process
         $(DOM.container).on("click", function (event) {
             var item = event.target.parentNode.parentNode.parentNode.parentNode.id;
