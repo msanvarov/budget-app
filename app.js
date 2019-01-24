@@ -26,6 +26,19 @@ $(function () {
             this.value = value;
         };
 
+        return {
+            addItem: function (type, des, val) {
+                var newItem, ID, length;
+                length = data.allItems[type].length;
+                length > 1 ? ID = data.allItems[type][data.allItems[type].length - 1].id + 1 : ID = 0;
+                if (type === "exp") {
+                    newItem = new Expenses(ID, des, val);
+                } else if (type === "inc") {
+                    newItem = new Income(ID, des, val);
+                }
+                data.allItems[type].push(newItem);
+            }
+        };
     })();
 
     var uiController = (function () {
@@ -56,6 +69,20 @@ $(function () {
                 }
             }, get_DOM: function () {
                 return DOMStrings;
+            },  addListItem: function (data_obj, type) {
+                if (type === "inc") {
+                    $(DOMStrings.incomeContainer).append(`<div class="item clearfix" id="income-` + data_obj.id + `">
+                 <div class="item__description">` + data_obj.description + `</div><div class="right clearfix">
+                 <div class="item__value">+` + data_obj.value + `</div><div class="item__delete">
+                 <button class="item__delete--btn"><i class="ion-ios-close-outline"></i>
+                 </button></div></div></div>`);
+                } else {
+                    $(DOMStrings.expensesContainer).append(`<div class="item clearfix" id="expense-` + data_obj.id + `">
+                  <div class="item__description">` + data_obj.description + `</div> <div class="right clearfix">
+                  <div class="item__value">- ` + data_obj.value + `</div> <div class="item__percentage">TODO (21%)</div>
+                  <div class="item__delete"> <button class="item__delete--btn">
+                  <i class="ion-ios-close-outline"></i></button> </div> </div> </div>`);
+                }
             }
         }
     })();
@@ -63,6 +90,18 @@ $(function () {
 // Global Controller
     var controller = (function (budgetCtrl, uiCtrl) {
         var DOM = uiCtrl.get_DOM();
+
+
+        $(DOM.inputBtn).click(function () {
+            var input = uiCtrl.get_input();
+            if (input.description[0].value !== "" && !isNaN(input.value[0].valueAsNumber) && input.value[0].valueAsNumber > 0) {
+                var item = budgetCtrl.addItem(input.type, input.description[0].value, input.value[0].valueAsNumber);
+                uiCtrl.addListItem(item, input.type);
+                changeBudget();
+                uiCtrl.clearFields();
+
+            }
+        });
 
     })(budgetController, uiController);
 
