@@ -14,6 +14,18 @@ $(function () {
             percentage: -1
         };
 
+        // constructor
+        var Expenses = function (id, description, value) {
+            this.id = id;
+            this.description = description;
+            this.value = value;
+        };
+        var Income = function (id, description, value) {
+            this.id = id;
+            this.description = description;
+            this.value = value;
+        };
+
     })();
 
     var uiController = (function () {
@@ -30,10 +42,27 @@ $(function () {
             budget: ".budget__value",
             container: ".container"
         };
+
+        return {
+            get_input: function () {
+                return {
+                    type: $(DOMStrings.inputType).val(),
+                    description: $(DOMStrings.inputDescription).keyup(function () {
+                        return $(this).val();
+                    }).keyup(),
+                    value: $(DOMStrings.inputValue).keyup(function () {
+                        return $(this).val();
+                    }).keyup()
+                }
+            }, get_DOM: function () {
+                return DOMStrings;
+            }
+        }
     })();
 
 // Global Controller
     var controller = (function (budgetCtrl, uiCtrl) {
+        var DOM = uiCtrl.get_DOM();
 
     })(budgetController, uiController);
 
